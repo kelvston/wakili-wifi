@@ -1,0 +1,510 @@
+import { Head } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
+import {
+    BriefcaseBusiness,
+    ChevronLeft,
+    ChevronRight,
+    FileText,
+    HeartHandshake,
+    Scale,
+    Wifi,
+} from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+
+type Package = {
+    name: string;
+    duration: string;
+    price: number;
+    currency: string;
+    available_count: number;
+    stock_count: number;
+};
+
+type PortalProps = {
+    packages: Package[];
+    payment_ready: boolean;
+};
+
+function formatPrice(price: number) {
+    return `TSh ${new Intl.NumberFormat('en-TZ').format(price)}`;
+}
+
+function formatPackageName(name: string) {
+    return name.replace(/\bhours?\b/gi, 'hr').replace(/\bdays?\b/gi, 'd');
+}
+
+const packageCardColors = [
+    {
+        card: 'border-emerald-200 bg-emerald-50/70 hover:border-emerald-400',
+        icon: 'bg-emerald-100 text-emerald-700',
+        button: 'bg-emerald-700 hover:bg-emerald-800',
+    },
+    {
+        card: 'border-sky-200 bg-sky-50/70 hover:border-sky-400',
+        icon: 'bg-sky-100 text-sky-700',
+        button: 'bg-sky-700 hover:bg-sky-800',
+    },
+    {
+        card: 'border-violet-200 bg-violet-50/70 hover:border-violet-400',
+        icon: 'bg-violet-100 text-violet-700',
+        button: 'bg-violet-700 hover:bg-violet-800',
+    },
+    {
+        card: 'border-amber-200 bg-amber-50/70 hover:border-amber-400',
+        icon: 'bg-amber-100 text-amber-700',
+        button: 'bg-amber-700 hover:bg-amber-800',
+    },
+    {
+        card: 'border-rose-200 bg-rose-50/70 hover:border-rose-400',
+        icon: 'bg-rose-100 text-rose-700',
+        button: 'bg-rose-700 hover:bg-rose-800',
+    },
+    {
+        card: 'border-cyan-200 bg-cyan-50/70 hover:border-cyan-400',
+        icon: 'bg-cyan-100 text-cyan-700',
+        button: 'bg-cyan-700 hover:bg-cyan-800',
+    },
+    {
+        card: 'border-orange-200 bg-orange-50/70 hover:border-orange-400',
+        icon: 'bg-orange-100 text-orange-700',
+        button: 'bg-orange-700 hover:bg-orange-800',
+    },
+    {
+        card: 'border-indigo-200 bg-indigo-50/70 hover:border-indigo-400',
+        icon: 'bg-indigo-100 text-indigo-700',
+        button: 'bg-indigo-700 hover:bg-indigo-800',
+    },
+];
+
+const serviceSlides = [
+    {
+        title: 'Legal help online',
+        description:
+            'Get online legal guidance for personal and business matters from Wakili Mtandao.',
+        href: 'https://wakilimtandao.com',
+        label: 'Explore Wakili Mtandao',
+        icon: Scale,
+        iconLabel: 'Scales of justice',
+        color: 'from-[#0d1f12] to-[#1e5f2a]',
+        accent: 'bg-[#2d8f44]',
+        highlight: 'text-[#a8edca]',
+    },
+    {
+        title: 'Legal document drafting',
+        description:
+            'Professional drafting for contracts, agreements and other legal documents.',
+        href: 'https://wakilimtandao.com/services',
+        label: 'View legal services',
+        icon: FileText,
+        iconLabel: 'Legal document',
+        color: 'from-[#17344a] to-[#2176ae]',
+        accent: 'bg-[#3498db]',
+        highlight: 'text-[#8ed5ff]',
+    },
+    {
+        title: 'Corporate legal advisory',
+        description:
+            'Advice on corporate governance, regulatory compliance and commercial transactions.',
+        href: 'https://wakilimtandao.com/about',
+        label: 'Learn about the team',
+        icon: BriefcaseBusiness,
+        iconLabel: 'Business advisory',
+        color: 'from-[#0d1f12] to-[#2d8f44]',
+        accent: 'bg-[#f4c430]',
+        highlight: 'text-[#f4c430]',
+    },
+    {
+        title: 'Family law support',
+        description:
+            'Professional guidance on family matters, including marriage, child custody and divorce.',
+        href: 'https://wakilimtandao.com/highlights',
+        label: 'Explore legal insights',
+        icon: HeartHandshake,
+        iconLabel: 'Family legal support',
+        color: 'from-[#53251d] to-[#a8402e]',
+        accent: 'bg-[#ff7043]',
+        highlight: 'text-[#ffb092]',
+    },
+];
+
+export default function Portal({ packages, payment_ready }: PortalProps) {
+    const [activeSlide, setActiveSlide] = useState(0);
+    const [selectedPackage, setSelectedPackage] = useState<Package | null>(
+        null,
+    );
+    const paymentForm = useForm({
+        package_name: '',
+        phone: '',
+    });
+
+    const selectPackage = (plan: Package) => {
+        setSelectedPackage(plan);
+        paymentForm.clearErrors();
+        paymentForm.setData({
+            package_name: plan.name,
+            phone: '',
+        });
+    };
+
+    useEffect(() => {
+        const interval = window.setInterval(() => {
+            setActiveSlide((current) => (current + 1) % serviceSlides.length);
+        }, 7000);
+
+        return () => window.clearInterval(interval);
+    }, []);
+
+    const ActiveServiceIcon = serviceSlides[activeSlide].icon;
+
+    return (
+        <>
+            <Head title="Wi-Fi access" />
+            <Dialog
+                open={selectedPackage !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setSelectedPackage(null);
+                        paymentForm.clearErrors();
+                    }
+                }}
+            >
+                <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl border-[#e5eae4] p-6 sm:p-8">
+                    {selectedPackage && (
+                        <>
+                            <DialogHeader className="pr-8 text-left">
+                                <DialogTitle className="text-2xl">
+                                    Complete your order
+                                </DialogTitle>
+                                <DialogDescription>
+                                    Enter the phone number you want to use for
+                                    payment. Your voucher will be issued after
+                                    payment is confirmed.
+                                </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="rounded-2xl bg-[#f7f8f4] p-4">
+                                <p className="font-semibold">
+                                    {selectedPackage.name}
+                                </p>
+                                <p className="mt-1 text-sm text-[#68746d]">
+                                    {formatPrice(selectedPackage.price)} · valid
+                                    for {selectedPackage.duration}
+                                </p>
+                            </div>
+
+                            <div>
+                                <label
+                                    htmlFor="customer-phone"
+                                    className="block text-sm font-medium"
+                                >
+                                    Phone number
+                                </label>
+                                <input
+                                    id="customer-phone"
+                                    type="tel"
+                                    autoComplete="tel"
+                                    inputMode="tel"
+                                    value={paymentForm.data.phone}
+                                    onChange={(event) =>
+                                        paymentForm.setData(
+                                            'phone',
+                                            event.target.value,
+                                        )
+                                    }
+                                    placeholder="Enter the phone number for payment"
+                                    className="mt-2 w-full rounded-xl border border-[#dce3dc] bg-white px-4 py-3 text-base text-[#17231f] caret-[#17231f] transition outline-none placeholder:text-[#68746d] focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
+                                />
+                                {paymentForm.errors.phone && (
+                                    <p className="mt-2 text-sm text-red-600">
+                                        {paymentForm.errors.phone}
+                                    </p>
+                                )}
+                                {paymentForm.errors.package_name && (
+                                    <p className="mt-2 text-sm text-red-600">
+                                        {paymentForm.errors.package_name}
+                                    </p>
+                                )}
+                            </div>
+
+                            <button
+                                type="button"
+                                disabled={
+                                    !payment_ready ||
+                                    paymentForm.processing ||
+                                    paymentForm.data.phone.trim().length < 7
+                                }
+                                onClick={() => paymentForm.post('/payments')}
+                                className="w-full rounded-full bg-emerald-700 px-5 py-3.5 font-medium text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-[#cbd3cb] disabled:text-[#5e685f]"
+                            >
+                                {paymentForm.processing
+                                    ? 'Starting payment…'
+                                    : 'Continue to payment'}
+                            </button>
+                            {!payment_ready && (
+                                <p className="-mt-2 text-center text-sm leading-6 text-[#68746d]">
+                                    Online payment is not connected yet. No
+                                    payment will be taken and no voucher will be
+                                    issued until payment setup is complete.
+                                </p>
+                            )}
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+            <main className="min-h-screen bg-[#f7f8f4] text-[#17231f]">
+                <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 sm:px-6 sm:py-4 lg:px-10">
+                    <a
+                        href="/"
+                        className="flex items-center gap-2.5 font-semibold tracking-tight"
+                    >
+                        <span className="flex size-10 items-center justify-center rounded-2xl bg-emerald-700 text-white">
+                            <Wifi className="size-5" />
+                        </span>
+                        <span>Wakili Wi-Fi</span>
+                    </a>
+                    <a
+                        href="/login"
+                        className="rounded-full border border-emerald-700 px-4 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-50"
+                    >
+                        Admin
+                    </a>
+                </header>
+
+                <section
+                    id="packages"
+                    className="scroll-mt-8 bg-white py-5 sm:py-7"
+                >
+                    <div className="mx-auto grid max-w-7xl gap-4 px-4 sm:px-6 lg:min-h-[calc(100svh-11rem)] lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.65fr)] lg:items-stretch lg:gap-6 lg:px-8 xl:px-10">
+                        <aside
+                            aria-label="Wakili Mtandao services"
+                            className={`flex min-h-[300px] flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br p-5 text-white shadow-lg sm:min-h-[340px] sm:p-7 lg:min-h-0 lg:p-8 ${serviceSlides[activeSlide].color}`}
+                        >
+                            <div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-xs font-semibold tracking-[0.18em] text-emerald-100 uppercase">
+                                        Wakili Mtandao
+                                    </span>
+                                    <span className="text-xs text-white/60">
+                                        {activeSlide + 1} /{' '}
+                                        {serviceSlides.length}
+                                    </span>
+                                </div>
+                                <div
+                                    className="mt-5 max-w-lg"
+                                    aria-live="polite"
+                                >
+                                    <div className="relative mb-5 flex h-28 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] sm:h-32">
+                                        <span
+                                            className={`absolute size-24 rounded-full opacity-20 blur-xl sm:size-28 ${serviceSlides[activeSlide].accent}`}
+                                        />
+                                        <span className="absolute top-5 left-[18%] size-3 rounded-full bg-[#f4c430] opacity-90" />
+                                        <span className="absolute right-[20%] bottom-5 size-4 rounded-full bg-[#3498db] opacity-90" />
+                                        <span className="absolute top-6 right-[28%] size-2 rounded-full bg-[#ff7043]" />
+                                        <span className="relative flex size-20 items-center justify-center rounded-2xl border border-white/20 bg-white/10 shadow-xl backdrop-blur sm:size-24">
+                                            <ActiveServiceIcon
+                                                aria-label={
+                                                    serviceSlides[activeSlide]
+                                                        .iconLabel
+                                                }
+                                                className={`size-10 sm:size-12 ${serviceSlides[activeSlide].highlight}`}
+                                                strokeWidth={1.5}
+                                            />
+                                        </span>
+                                        <span className="absolute bottom-3 left-3 rounded-full border border-white/15 bg-black/10 px-2.5 py-1 text-[10px] font-medium tracking-wide text-white/75">
+                                            WAKILI MTANDAO
+                                        </span>
+                                        <span className="absolute top-3 right-3 size-2 rounded-full bg-[#a8edca] shadow-[0_0_12px_#a8edca]" />
+                                    </div>
+                                    <p className="text-sm font-medium text-white/65">
+                                        Legal services in Tanzania
+                                    </p>
+                                    <h2 className="mt-2 text-2xl leading-tight font-semibold sm:text-3xl lg:text-4xl">
+                                        {serviceSlides[activeSlide].title}
+                                    </h2>
+                                    <p className="mt-3 max-w-md text-sm leading-6 text-white/75 sm:text-base sm:leading-6">
+                                        {serviceSlides[activeSlide].description}
+                                    </p>
+                                    <a
+                                        href={serviceSlides[activeSlide].href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="mt-4 inline-flex rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-[#1e5f2a] transition hover:bg-[#e9f7ed]"
+                                    >
+                                        {serviceSlides[activeSlide].label}
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                                    <a
+                                        href="tel:0788339939"
+                                        className="text-sm font-semibold text-white hover:underline"
+                                    >
+                                        Call 0788339939
+                                    </a>
+                                    <a
+                                        href="https://wakilimtandao.com/contact"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-white/70 underline underline-offset-4 hover:text-white sm:text-sm"
+                                    >
+                                        More contact options
+                                    </a>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        aria-label="Previous service"
+                                        onClick={() =>
+                                            setActiveSlide(
+                                                (current) =>
+                                                    (current -
+                                                        1 +
+                                                        serviceSlides.length) %
+                                                    serviceSlides.length,
+                                            )
+                                        }
+                                        className="flex size-9 items-center justify-center rounded-full border border-white/25 text-white transition hover:bg-white/10"
+                                    >
+                                        <ChevronLeft className="size-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        aria-label="Next service"
+                                        onClick={() =>
+                                            setActiveSlide(
+                                                (current) =>
+                                                    (current + 1) %
+                                                    serviceSlides.length,
+                                            )
+                                        }
+                                        className="flex size-9 items-center justify-center rounded-full border border-white/25 text-white transition hover:bg-white/10"
+                                    >
+                                        <ChevronRight className="size-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        </aside>
+
+                        <div className="relative isolate min-w-0 overflow-hidden rounded-3xl border border-[#e8ece7] bg-white/60 p-4 shadow-sm backdrop-blur-[1px] sm:p-5 lg:p-6">
+                            <div
+                                aria-hidden="true"
+                                className="pointer-events-none absolute inset-0 z-0 bg-center bg-no-repeat opacity-40"
+                                style={{
+                                    backgroundImage:
+                                        "url('/wakilimtandao-icon.png')",
+                                    backgroundSize: 'min(85%, 560px) auto',
+                                }}
+                            />
+                            <div className="relative z-10 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                                <div>
+                                    <p className="text-xs font-semibold tracking-[0.18em] text-emerald-700 uppercase">
+                                        Wi-Fi packages
+                                    </p>
+                                    <p className="mt-1 text-xs leading-5 text-[#68746d] sm:text-sm">
+                                        Choose a package and pay securely. Your
+                                        voucher is assigned after payment is
+                                        confirmed.
+                                    </p>
+                                </div>
+                                <a
+                                    href="https://wakilimtandao.com/contact"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-1 shrink-0 text-xs font-medium text-emerald-800 underline underline-offset-4 sm:mt-0"
+                                >
+                                    Contact
+                                </a>
+                            </div>
+
+                            {packages.length > 0 ? (
+                                <div className="relative z-10 mt-4 grid content-start items-start gap-2.5 min-[360px]:grid-cols-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-4">
+                                    {packages.map((plan, index) => {
+                                        const available =
+                                            plan.available_count > 0;
+                                        const colors =
+                                            packageCardColors[
+                                                index % packageCardColors.length
+                                            ];
+
+                                        return (
+                                            <article
+                                                key={plan.name}
+                                                className={`flex min-w-0 flex-col rounded-2xl border p-2.5 transition hover:shadow-lg hover:shadow-emerald-950/5 sm:p-3 ${colors.card}`}
+                                            >
+                                                <div className="flex min-h-7 flex-wrap items-center justify-between gap-1.5">
+                                                    <span
+                                                        className={`flex size-7 shrink-0 items-center justify-center rounded-lg sm:size-8 ${colors.icon}`}
+                                                    >
+                                                        <Wifi className="size-3.5" />
+                                                    </span>
+                                                    {!available &&
+                                                        plan.stock_count >
+                                                            0 && (
+                                                            <span className="rounded-full bg-white/70 px-2 py-1 text-[10px] leading-tight font-medium text-[#737c75]">
+                                                                Sold out
+                                                            </span>
+                                                        )}
+                                                </div>
+                                                <div className="mt-2 flex min-w-0 items-baseline justify-between gap-1">
+                                                    <h3 className="min-w-0 text-xs font-semibold sm:text-sm">
+                                                        {formatPackageName(
+                                                            plan.name,
+                                                        )}
+                                                    </h3>
+                                                    <p className="shrink-0 text-sm font-semibold tracking-tight whitespace-nowrap sm:text-base">
+                                                        {formatPrice(
+                                                            plan.price,
+                                                        )}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    disabled={!available}
+                                                    onClick={() => {
+                                                        selectPackage(plan);
+                                                    }}
+                                                    className={`mt-2 w-full rounded-full px-2 py-1.5 text-[11px] font-medium text-white transition disabled:cursor-not-allowed disabled:bg-[#cbd3cb] disabled:text-[#5e685f] sm:text-xs ${colors.button}`}
+                                                >
+                                                    {available
+                                                        ? 'Pay'
+                                                        : plan.stock_count === 0
+                                                          ? 'No vouchers loaded'
+                                                          : 'Sold out'}
+                                                </button>
+                                            </article>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="mx-auto mt-6 rounded-2xl border border-dashed border-[#d8e1d8] bg-white px-4 py-8 text-center">
+                                    <Wifi className="mx-auto size-6 text-emerald-700" />
+                                    <h3 className="mt-3 text-base font-semibold">
+                                        Packages are being prepared
+                                    </h3>
+                                    <p className="mt-1 text-sm leading-6 text-[#68746d]">
+                                        There are no Wi-Fi packages available
+                                        right now. Please check back soon.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                <footer className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-3 text-xs text-[#68746d] sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-10">
+                    <span>© {new Date().getFullYear()} Wakili Wi-Fi</span>
+                    <span>Need help? Contact your Wi-Fi provider.</span>
+                </footer>
+            </main>
+        </>
+    );
+}
