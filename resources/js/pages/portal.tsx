@@ -30,6 +30,7 @@ type Package = {
 type PortalProps = {
     packages: Package[];
     payment_ready: boolean;
+    hotspot_login_url: string;
 };
 
 function formatPrice(price: number) {
@@ -134,7 +135,11 @@ const serviceSlides = [
     },
 ];
 
-export default function Portal({ packages, payment_ready }: PortalProps) {
+export default function Portal({
+    packages,
+    payment_ready,
+    hotspot_login_url,
+}: PortalProps) {
     const [activeSlide, setActiveSlide] = useState(0);
     const [couponOpen, setCouponOpen] = useState(false);
     const [couponCode, setCouponCode] = useState('');
@@ -302,13 +307,7 @@ export default function Portal({ packages, payment_ready }: PortalProps) {
                                 Enter your voucher code to access Wakili Wi-Fi.
                             </DialogDescription>
                         </DialogHeader>
-                        <form action="$(link-login-only)" method="post">
-                            <input
-                                type="hidden"
-                                name="dst"
-                                value="$(link-orig-esc)"
-                            />
-                            <input type="hidden" name="popup" value="true" />
+                        <form action={hotspot_login_url} method="post">
                             <input
                                 type="hidden"
                                 name="username"

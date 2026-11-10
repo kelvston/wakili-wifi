@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'hotspot_login_url' => env(
+        'HOTSPOT_LOGIN_URL',
+        'http://192.168.88.1/login?dst=http%3A%2F%2Fconnectivity-check.ubuntu.com%2F',
+    ),
+
     'packages' => [
         ['name' => '5 hours', 'duration' => '5 hours', 'price' => 500],
         ['name' => '12 hours', 'duration' => '12 hours', 'price' => 1000],

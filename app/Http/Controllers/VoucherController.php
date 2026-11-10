@@ -39,6 +39,7 @@ class VoucherController extends Controller
 
         return Inertia::render('portal', [
             'packages' => $packages,
+            'hotspot_login_url' => config('wifi.hotspot_login_url'),
             'payment_ready' => filled(config('services.sonicpesa.api_key'))
                 && filled(config('services.sonicpesa.secret_key')),
         ]);

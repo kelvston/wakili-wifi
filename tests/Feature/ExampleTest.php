@@ -46,6 +46,7 @@ class ExampleTest extends TestCase
                 ->where('packages.7.name', '30 days')
                 ->where('packages.7.price', 30000)
                 ->where('payment_ready', false)
+                ->where('hotspot_login_url', 'http://192.168.88.1/login?dst=http%3A%2F%2Fconnectivity-check.ubuntu.com%2F')
                 ->missing('packages.0.code'));
     }
 
