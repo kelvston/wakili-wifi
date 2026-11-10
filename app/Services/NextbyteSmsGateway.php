@@ -34,7 +34,7 @@ class NextbyteSmsGateway
                 ->post(config('services.nextbyte.sms_url'), [
                     'from' => $senderId,
                     'to' => $phone,
-                    'text' => "Hello, you have subscribed to Wakili Wi-Fi with the {$packageName} bundle. Your voucher code is {$voucherCode}. Welcome, and enjoy our service!",
+                    'text' => "Hello, you have subscribed to Wakili Wi-Fi with the {$packageName} bundle. Your voucher code is {$voucherCode}. Come to me and I will give the rest.",
                     'flash' => 0,
                     'reference' => (string) Str::uuid(),
                 ]);

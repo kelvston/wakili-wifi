@@ -127,7 +127,7 @@ class PaymentFlowTest extends TestCase
             && $request->hasHeader('Authorization', 'Bearer test-nextbyte-key')
             && $request['from'] === 'Wakili M'
             && $request['to'] === '255712345678'
-            && $request['text'] === "Hello, you have subscribed to Wakili Wi-Fi with the 5 hours bundle. Your voucher code is {$voucher->code}. Welcome, and enjoy our service!"
+            && $request['text'] === "Hello, you have subscribed to Wakili Wi-Fi with the 5 hours bundle. Your voucher code is {$voucher->code}. Come to me and I will give the rest."
             && $request['flash'] === 0
             && is_string($request['reference'])
             && $request['reference'] !== '');
