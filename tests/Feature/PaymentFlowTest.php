@@ -6,6 +6,8 @@ use App\Models\PaymentOrder;
 use App\Models\Voucher;
 use App\Services\SonicPesaGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Mockery;
 use Mockery\MockInterface;
 use Tests\TestCase;
@@ -23,7 +25,13 @@ class PaymentFlowTest extends TestCase
             'services.sonicpesa.secret_key' => 'test-secret-key',
             'services.sonicpesa.base_url' => 'https://api.sonicpesa.test',
             'services.sonicpesa.timeout' => 5,
+            'services.nextbyte.api_key' => 'test-nextbyte-key',
+            'services.nextbyte.sender_id' => 'Wakili M',
+            'services.nextbyte.sms_url' => 'https://messaging-service.co.tz/api/sms/v2/text/single',
+            'services.nextbyte.timeout' => 5,
         ]);
+
+        Http::fake();
     }
 
     public function test_customer_can_start_checkout_without_an_account_and_voucher_is_reserved(): void
@@ -101,6 +109,7 @@ class PaymentFlowTest extends TestCase
             ->assertJsonPath('voucher_code', null);
 
         $this->assertSame('reserved', $voucher->fresh()->status);
+        Http::assertNothingSent();
 
         $this->getJson(route('payments.status', $payment))
             ->assertOk()
@@ -110,6 +119,18 @@ class PaymentFlowTest extends TestCase
         $this->assertSame('assigned', $voucher->fresh()->status);
         $this->assertSame('255712345678', $voucher->fresh()->assigned_to_phone);
         $this->assertSame('paid', $payment->fresh()->status);
+        $this->getJson(route('payments.status', $payment))
+            ->assertOk()
+            ->assertJsonPath('status', 'paid');
+        Http::assertSentCount(1);
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://messaging-service.co.tz/api/sms/v2/text/single'
+            && $request->hasHeader('Authorization', 'Bearer test-nextbyte-key')
+            && $request['from'] === 'Wakili M'
+            && $request['to'] === '255712345678'
+            && $request['text'] === "Hello, you have subscribed to Wakili Wi-Fi with the 5 hours bundle. Your voucher code is {$voucher->code}. Welcome, and enjoy our service!"
+            && $request['flash'] === 0
+            && is_string($request['reference'])
+            && $request['reference'] !== '');
     }
 
     public function test_failed_payment_releases_reserved_voucher(): void

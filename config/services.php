@@ -42,4 +42,11 @@ return [
         'timeout' => (int) env('SONICPESA_TIMEOUT', 15),
     ],
 
+    'nextbyte' => [
+        'api_key' => env('NEXTBYTE_KEY'),
+        'sender_id' => env('SENDER_ID'),
+        'sms_url' => env('NEXTBYTE_SMS_URL', 'https://messaging-service.co.tz/api/sms/v2/text/single'),
+        'timeout' => (int) env('NEXTBYTE_TIMEOUT', 10),
+    ],
+
 ];

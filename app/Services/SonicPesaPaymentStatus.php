@@ -11,7 +11,10 @@ class SonicPesaPaymentStatus
 {
     public const RESERVATION_MINUTES = 3;
 
-    public function __construct(private readonly SonicPesaGateway $sonicPesa) {}
+    public function __construct(
+        private readonly SonicPesaGateway $sonicPesa,
+        private readonly NextbyteSmsGateway $nextbyteSms,
+    ) {}
 
     public function refresh(PaymentOrder $payment): ?string
     {
@@ -81,11 +84,11 @@ class SonicPesaPaymentStatus
 
     private function markPaid(PaymentOrder $payment): void
     {
-        DB::transaction(function () use ($payment) {
+        $smsDetails = DB::transaction(function () use ($payment) {
             $lockedPayment = PaymentOrder::query()->lockForUpdate()->findOrFail($payment->id);
 
             if ($lockedPayment->status !== 'pending') {
-                return;
+                return null;
             }
 
             $voucher = Voucher::query()->lockForUpdate()->findOrFail($lockedPayment->voucher_id);
@@ -100,12 +103,28 @@ class SonicPesaPaymentStatus
 
                 $lockedPayment->update(['status' => 'needs_review']);
 
-                return;
+                return null;
             }
 
             $voucher->assignTo($lockedPayment->phone);
             $lockedPayment->update(['status' => 'paid']);
+
+            return [
+                'phone' => $lockedPayment->phone,
+                'package_name' => $lockedPayment->package_name,
+                'voucher_code' => $voucher->code,
+                'payment_reference' => $lockedPayment->public_id,
+            ];
         });
+
+        if ($smsDetails !== null) {
+            $this->nextbyteSms->sendVoucherCode(
+                $smsDetails['phone'],
+                $smsDetails['package_name'],
+                $smsDetails['voucher_code'],
+                $smsDetails['payment_reference'],
+            );
+        }
     }
 
     private function releaseVoucher(PaymentOrder $payment, string $paymentStatus): void
