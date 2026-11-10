@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Laravel + React Starter Kit
 
 ## Introduction
@@ -25,3 +26,7 @@ In order to ensure that the Laravel community is welcoming to all, please review
 ## License
 
 The Laravel + React starter kit is open-sourced software licensed under the MIT license.
+=======
+# wakili-wifi
+wifi
+>>>>>>> origin/main
